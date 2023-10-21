@@ -27,8 +27,8 @@ type Options struct {
 }
 
 type Backend struct {
-	Addr           string `"yaml:addr"`
-	ConnectTimeout int    `yaml:connect_timeout"`
+	Addr           string `yaml:"addr"`
+	ConnectTimeout int    `yaml:"connect_timeout"`
 }
 
 type Frontend struct {
@@ -131,7 +131,7 @@ func (s *Server) runFrontend(name string, front *Frontend, l net.Listener) {
 		// accept next connection to this frontend
 		conn, err := l.Accept()
 		if err != nil {
-			s.Printf("Failed to accept new connection for '%v': %v", conn.RemoteAddr())
+			s.Printf("Failed to accept new connection for '%v'", conn.RemoteAddr())
 			if e, ok := err.(net.Error); ok {
 				if e.Temporary() {
 					continue
