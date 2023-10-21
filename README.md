@@ -13,6 +13,8 @@ You configure slt with a simple YAML configuration file:
 
     bind_addr: ":443"
 
+    user: pi
+
     frontends:
       v1.example.com:
         backends:

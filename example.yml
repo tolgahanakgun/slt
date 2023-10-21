@@ -1,6 +1,9 @@
 # bind to this address to accept new TLS connections
 bind_addr: ":443"
 
+# switch to this user if started as root
+user: pi
+
 frontends:
   # connections with SNI of "v1.example.com" are handled by this block,
   # they are proxied to port 4443 on localhost

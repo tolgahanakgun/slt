@@ -13,6 +13,9 @@ import (
 	"os"
 	"sync"
 	"time"
+	"syscall"
+	"os/user"
+	"strconv"
 )
 
 const (
@@ -45,6 +48,7 @@ type Frontend struct {
 
 type Configuration struct {
 	BindAddr        string               `yaml:"bind_addr"`
+	User            *string              `yaml:"user"`
 	Frontends       map[string]*Frontend `yaml:"frontends"`
 	defaultFrontend *Frontend
 }
@@ -112,6 +116,39 @@ func (s *Server) Run() error {
 	// we're ready, signal it for testing
 	if s.ready != nil {
 		close(s.ready)
+	}
+
+	if syscall.Getuid() == 0 {
+		s.Println("Running as root, downgrading to user:", *(s.Configuration.User))
+		_user, err := user.Lookup(*(s.Configuration.User))
+		if err != nil {
+			s.Fatalln("User not found or other error:", err)
+			os.Exit(1)
+		}
+
+		uid, err := strconv.Atoi(_user.Uid)
+		if err != nil {
+			s.Fatalln("Unable to get uid:", err)
+			os.Exit(1)
+		}
+
+		gid, err := strconv.Atoi(_user.Gid)
+		if err != nil {
+			s.Fatalln("Unable to get gid:", err)
+			os.Exit(1)
+		}
+
+		err = syscall.Setgid(gid)
+		if err != nil {
+			s.Fatalln("Unable to set GID due to error:", err)
+			os.Exit(1)
+		}
+
+		err = syscall.Setuid(uid)
+		if err != nil {
+			s.Fatalln("Unable to set UID due to error:", err)
+			os.Exit(1)
+		}
 	}
 
 	s.wait.Wait()
