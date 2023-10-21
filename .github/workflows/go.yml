@@ -1,0 +1,41 @@
+# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: Go
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21.X'
+
+    - name: Build
+      run: |
+        go mod init slt
+        go get -u github.com/go-yaml/yaml@latest
+        go get -u github.com/inconshreveable/go-vhost@latest
+        env GOOS=linux GOARCH=arm   go build -o slt-arm   -v server.go
+        env GOOS=linux GOARCH=arm64 go build -o slt-arm64 -v server.go
+        env GOOS=linux GOARCH=amd64 go build -o slt-amd64 -v server.go
+
+    - name: Archive production artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: builds-for-arm-arm64-amd64
+        path: |
+          slt-arm
+          slt-arm64
+          slt-amd64
+
